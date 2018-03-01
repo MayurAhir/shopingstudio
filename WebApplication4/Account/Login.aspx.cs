@@ -5,11 +5,17 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Owin;
 using WebApplication4.Models;
-
+using System.Data.Sql;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Collections.Generic;
+using System.Web.UI.WebControls;
 namespace WebApplication4.Account
 {
     public partial class Login : Page
     {
+
+        ShopingEntities db = new ShopingEntities();
         protected void Page_Load(object sender, EventArgs e)
         {
             RegisterHyperLink.NavigateUrl = "Register";
@@ -21,41 +27,45 @@ namespace WebApplication4.Account
             {
                 RegisterHyperLink.NavigateUrl += "?ReturnUrl=" + returnUrl;
             }
+            
         }
 
-        protected void LogIn(object sender, EventArgs e)
+        protected void Button1_Click(object sender, EventArgs e)
         {
-            if (IsValid)
+
+            // List<userlist_Result> m = db.userlist(Email.Text, Password.Text).ToList();
+            String em = Email.Text;
+            var ps = Password.Text;
+
+            List<UserMst> n = (from st in db.UserMsts
+                               where st.email == em
+                               where st.password == ps
+                               select st).ToList<UserMst>();
+
+            //  var m = db.UserMsts.Where(p => p.email == Email.Text && p.password == Password.Text).ToString() ;
+
+            if (n.Any())
             {
-                // Validate the user password
-                var manager = Context.GetOwinContext().GetUserManager<ApplicationUserManager>();
-                var signinManager = Context.GetOwinContext().GetUserManager<ApplicationSignInManager>();
-
-                // This doen't count login failures towards account lockout
-                // To enable password failures to trigger lockout, change to shouldLockout: true
-                var result = signinManager.PasswordSignIn(Email.Text, Password.Text, RememberMe.Checked, shouldLockout: false);
-
-                switch (result)
+                UserMst m = n.First();
+                if (Email.Text == m.email)
                 {
-                    case SignInStatus.Success:
-                        IdentityHelper.RedirectToReturnUrl(Request.QueryString["ReturnUrl"], Response);
-                        break;
-                    case SignInStatus.LockedOut:
-                        Response.Redirect("/Account/Lockout");
-                        break;
-                    case SignInStatus.RequiresVerification:
-                        Response.Redirect(String.Format("/Account/TwoFactorAuthenticationSignIn?ReturnUrl={0}&RememberMe={1}", 
-                                                        Request.QueryString["ReturnUrl"],
-                                                        RememberMe.Checked),
-                                          true);
-                        break;
-                    case SignInStatus.Failure:
-                    default:
-                        FailureText.Text = "Invalid login attempt";
-                        ErrorMessage.Visible = true;
-                        break;
+
+                    Session["username"] = m.username;
+                    Session["u_id"] = m.u_id;
+                    Response.Redirect("~/Product.aspx");
+                }
+                else
+                {
+                    Label1.Text = "Invalid User";
                 }
             }
+            else
+                Label1.Text = "Invalid User";
+
+            
+
+
         }
     }
+    
 }

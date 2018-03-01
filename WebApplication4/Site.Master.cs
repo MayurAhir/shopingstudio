@@ -76,6 +76,14 @@ namespace WebApplication4
         {
             Context.GetOwinContext().Authentication.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
         }
+
+        protected void Button1_Click(object sender, EventArgs e)
+        {
+            Session["username"] = null;
+            Session["u_id"] = null;
+            Response.Redirect("~/Default.aspx");
+
+        }
     }
 
 }
